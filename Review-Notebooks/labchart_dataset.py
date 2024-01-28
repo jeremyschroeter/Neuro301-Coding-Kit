@@ -1,16 +1,22 @@
+import os
+import errno
 import numpy as np
 from scipy.io import loadmat
 
-class DataLoader:
+class LabChartDataset:
     def __init__(self, mat_path: str) -> None:
         '''
-        DataLoader object which acts as a container for LabChart channel data
+        DataSet object which acts as a container for LabChart channel data
         that has been exported as a MATLAB file.
         
         Example usage:
-            dataloader = DataLoader(file_path)\n
-            channel_data = dataloader.data['Channel #']
+            DataSet = DataSet(file_path)\n
+            channel_data = DataSet.data['Channel #']
         '''
+
+        # scipy throw an error w/o this, but this should be less verbose of an error
+        if os.path.exists(mat_path) == False:
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), mat_path)
         
         self.mat_dict = loadmat(file_name=mat_path)
         self.n_channels = self.mat_dict['titles'].shape[0]
@@ -18,7 +24,6 @@ class DataLoader:
         self.data = {
             f'Channel {ch + 1}' : self._split_blocks(ch) for ch in range(self.n_channels)
         }
-        
 
     def _split_blocks(self, channel_idx: int) -> list[np.ndarray]:
         '''
@@ -39,10 +44,19 @@ class DataLoader:
         return channel_blocks
     
     def get_block(self, block_index: int) -> np.ndarray:
+        '''
+        Given a block index number, returns a (channel x timepoints) array
+        containing the data for that block. If only 1 channel, returns
+        a 1D array of size (timepoints,)
+        '''
+        if block_index + 1 > len(self.data.keys()):
+            raise IndexError('block index out of range')
+
         block = []
         for ch in self.data.keys():
             block.append(self.data[ch][block_index])
-        print(len(block))
+        if len(block) == 1:
+            return np.array(block[0])
         return np.stack(block)
         
     @property
