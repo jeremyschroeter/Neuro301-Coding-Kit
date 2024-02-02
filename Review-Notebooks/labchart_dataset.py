@@ -21,9 +21,7 @@ class LabChartDataset:
         self.mat_dict = loadmat(file_name=mat_path)
         self.n_channels = self.mat_dict['titles'].shape[0]
         
-        self.data = {
-            f'Channel {ch + 1}' : self._split_blocks(ch) for ch in range(self.n_channels)
-        }
+        self.data = {f'Channel {ch + 1}' : self._split_blocks(ch) for ch in range(self.n_channels)}
 
     def _split_blocks(self, channel_idx: int) -> list[np.ndarray]:
         '''
@@ -49,8 +47,6 @@ class LabChartDataset:
         containing the data for that block. If only 1 channel, returns
         a 1D array of size (timepoints,)
         '''
-        if block_index + 1 > len(self.data.keys()):
-            raise IndexError('block index out of range')
 
         block = []
         for ch in self.data.keys():
