@@ -10,8 +10,9 @@ class LabChartDataset:
         that has been exported as a MATLAB file.
         
         Example usage:
-            DataSet = DataSet(file_path)\n
-            channel_data = DataSet.data['Channel #']
+            dataset = DataSet(file_path)
+            channel_data = dataset.data['Channel #']
+            block_n = dataset.get_block(n)
         '''
 
         # scipy throw an error w/o this, but this should be less verbose of an error
@@ -21,7 +22,9 @@ class LabChartDataset:
         self.mat_dict = loadmat(file_name=mat_path)
         self.n_channels = self.mat_dict['titles'].shape[0]
         
-        self.data = {f'Channel {ch + 1}' : self._split_blocks(ch) for ch in range(self.n_channels)}
+        self.data = {
+            f'Channel {ch + 1}' : self._split_blocks(ch) for ch in range(self.n_channels)
+        }
 
     def _split_blocks(self, channel_idx: int) -> list[np.ndarray]:
         '''
